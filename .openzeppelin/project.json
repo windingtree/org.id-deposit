@@ -1,0 +1,28 @@
+{
+  "manifestVersion": "2.2",
+  "contracts": {
+    "LifDepositUpgradeability": "LifDepositUpgradeability",
+    "LifDepositTimeMachine": "LifDepositTimeMachine",
+    "LifTestInitializable": "LifTestInitializable"
+  },
+  "dependencies": {},
+  "name": "org.id",
+  "version": "0.12.0",
+  "publish": true,
+  "compiler": {
+    "manager": "openzeppelin",
+    "compilerSettings": {
+      "optimizer": {
+        "enabled": true,
+        "runs": "200"
+      }
+    },
+    "solcVersion": "0.5.16",
+    "artifactsDir": "build/contracts",
+    "contractsDir": "contracts",
+    "typechain": {
+      "enabled": false
+    }
+  },
+  "telemetryOptIn": false
+}
