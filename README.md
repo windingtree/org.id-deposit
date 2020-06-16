@@ -1,4 +1,4 @@
-[![Coverage Status](https://coveralls.io/repos/github/windingtree/org.id/badge.svg?branch=master)](https://coveralls.io/github/windingtree/org.id?branch=master&v=2.0)
+[![Coverage Status](https://coveralls.io/repos/github/windingtree/org.id-lif-deposit/badge.svg?branch=master)](https://coveralls.io/github/windingtree/org.id-lif-deposit?branch=master)
 
 <a href="https://orgid.tech"><img src="https://github.com/windingtree/branding/raw/master/org.id/svg/org.id-logo.svg" height="50" alt="ORG.ID"></a>
 
