@@ -56,7 +56,7 @@ contract('LifDeposit', accounts => {
     const organizationOwner = accounts[5];
     const entityDirector = accounts[6];
 
-    const defaultWithdrawalDelay = '60000';
+    const defaultWithdrawalDelay = '600000';
     const defaultDepositValue = toWeiEther('1000');
 
     let lifToken;
@@ -118,6 +118,21 @@ contract('LifDeposit', accounts => {
         });
         await setupOrgId();
         await setupLifDeposit();
+    });
+
+    describe('Initializer', () => {
+        it('shoudl fail if orgId contract not supported ORG.ID interface', async () => {
+            await assertRevert(
+                project.createProxy(LifDeposit, {
+                    initMethod: 'initialize',
+                    initArgs: [
+                        lifDepositOwner,
+                        lifToken.address, // wrong orgId contract
+                        lifToken.address
+                    ]
+                })
+            );
+        });
     });
 
     describe('Ownable behaviour', () => {
@@ -500,16 +515,16 @@ contract('LifDeposit', accounts => {
                 );
             });
 
-            it('should return exist=false if organization not found', async () => {
+            it('should return exists=false if organization not found', async () => {
                 (await lifDeposit
                     .methods['getWithdrawalRequest(bytes32)'](zeroBytes)
-                    .call()).should.has.property('exist').to.false;
+                    .call()).should.has.property('exists').to.false;
             });
 
-            it('should return exist=false withdrawal request not found', async () => {
+            it('should return exists=false withdrawal request not found', async () => {
                 (await lifDeposit
                     .methods['getWithdrawalRequest(bytes32)'](organizationId2)
-                    .call()).should.has.property('exist').to.false;
+                    .call()).should.has.property('exists').to.false;
             });
 
             it('should return withrdawal request info', async () => {
@@ -518,7 +533,7 @@ contract('LifDeposit', accounts => {
                     .call();
                 (await lifDeposit
                     .methods['getWithdrawalRequest(bytes32)'](organizationId)
-                    .call()).should.has.property('exist').to.true;
+                    .call()).should.has.property('exists').to.true;
                 (request).should.be.an('object')
                     .that.has.property('value')
                     .to.equal(defaultDepositValue);
@@ -604,7 +619,7 @@ contract('LifDeposit', accounts => {
                     organizationOwner,
                     lifDepositOwner,
                     organizationId,
-                    true
+                    true // this option is rewinding time to the withdrawalTime
                 );
             });
         });

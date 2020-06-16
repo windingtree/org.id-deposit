@@ -158,5 +158,5 @@ module.exports.withdrawDeposit = async (
     ]);
     (await lifDeposit
         .methods['getWithdrawalRequest(bytes32)'](id)
-        .call()).should.has.property('exist').to.false;
+        .call()).should.has.property('exists').to.false;
 };

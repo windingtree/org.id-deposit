@@ -38,8 +38,9 @@ contract LifDepositTimeMachine is LifDeposit {
     }
 
     /**
-     * @dev Return current time
-     * @dev uint256
+     * @dev Get current time
+     * This function can be overriden for testing purposes
+     * @return uint256 Current block time
      */
     function time() internal view returns (uint256) {
         return _currentTime == 0 ? now : _currentTime;// solhint-disable-line not-rely-on-time

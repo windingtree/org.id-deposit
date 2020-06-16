@@ -5,10 +5,6 @@
  * @returns {Promise}
  */
 module.exports.assertRevert = async (promise, expectedReason = null) => {
-    if (expectedReason === null) {
-        throw('assertRevert: expected reason for revert must be provided');
-    }
-
     try {
         await promise;
         assert.fail('Revert was expected, but action succeeded');
@@ -22,7 +18,7 @@ module.exports.assertRevert = async (promise, expectedReason = null) => {
             assert(false, '"revert" keyword not found in error message: ' + msg);
         }
         
-        if (!expectedReasonFound) {
+        if (expectedReason && !expectedReasonFound) {
             assert(false, `Expected revert reason was not found in error message.
 
             expected reason: "${expectedReason}"

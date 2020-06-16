@@ -52,7 +52,7 @@ contract LifDepositInterface {
      * @dev Returns information about deposit withdrawal request
      * @param organization The organization Id
      * @return {
-         "existed": "The request existence flag",
+         "exists": "The request existence flag",
          "value": "Deposit withdrawal value",
          "withdrawTime": "Withraw time on seconds"
      }
@@ -61,7 +61,7 @@ contract LifDepositInterface {
         external
         view 
         returns (
-            bool existed,
+            bool exists,
             uint256 value,
             uint256 withdrawTime
         );

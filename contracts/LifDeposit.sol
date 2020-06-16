@@ -90,19 +90,15 @@ contract LifDeposit is LifDepositInterface, Ownable, ERC165, Initializable {
             ,
             address organizationOwner,
             address organizationDirector,
-            bool state,
-            bool directorConfirmed
+            ,
+            
         ) = orgId.getOrganization(organization);
         require(exists, "LifDeposit: Organization not found");
         require(
             organizationOwner == msg.sender || 
-            (
-                organizationDirector == msg.sender &&
-                directorConfirmed
-            ), 
+            organizationDirector == msg.sender, 
             "LifDeposit: action not authorized (must be owner or director)"
         );
-        require(state, "LifDeposit: Organization is disabled");
         _;
     }
 
@@ -200,7 +196,7 @@ contract LifDeposit is LifDepositInterface, Ownable, ERC165, Initializable {
      * @dev Returns information about deposit withdrawal request
      * @param organization The organization Id
      * @return {
-         "exist": "The request existence flag",
+         "exists": "The request existence flag",
          "value": "Deposit withdrawal value",
          "withdrawTime": "Withraw time on seconds"
      }
@@ -209,12 +205,12 @@ contract LifDeposit is LifDepositInterface, Ownable, ERC165, Initializable {
         external
         view 
         returns (
-            bool exist,
+            bool exists,
             uint256 value,
             uint256 withdrawTime
         )
     {
-        exist = 
+        exists = 
             organization != bytes32(0) &&
             deposits[organization] > 0 &&
             withdrawalRequests[organization].value != 0;
