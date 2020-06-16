@@ -5,6 +5,9 @@ on: [push, pull_request]
 jobs:
   unittests:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [10.x]
     steps:
       - uses: actions/checkout@v2
 
