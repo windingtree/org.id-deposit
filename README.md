@@ -1,4 +1,4 @@
-[![Coverage Status](https://coveralls.io/repos/github/windingtree/org.id-lif-deposit/badge.svg?branch=master)](https://coveralls.io/github/windingtree/org.id-lif-deposit?branch=master)
+![Automated Linting and Unit Tests](https://github.com/windingtree/org.id-lif-deposit/workflows/Automated%20Linting%20and%20Unit%20Tests/badge.svg?branch=master) [![Coverage Status](https://coveralls.io/repos/github/windingtree/org.id-lif-deposit/badge.svg?branch=master)](https://coveralls.io/github/windingtree/org.id-lif-deposit?branch=master)
 
 <a href="https://orgid.tech"><img src="https://github.com/windingtree/branding/raw/master/org.id/svg/org.id-logo.svg" height="50" alt="ORG.ID"></a>
 

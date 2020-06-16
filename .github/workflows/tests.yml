@@ -1,4 +1,4 @@
-name: Automated Linting and Unit Tests
+name: Tests
 
 on: [push, pull_request]
 
