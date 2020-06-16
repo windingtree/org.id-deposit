@@ -13,7 +13,6 @@ const {
 } = require('./helpers/constants');
 const { toWeiEther } = require('./helpers/common');
 const {
-    generateId,
     createOrganization
 } = require('./helpers/orgid');
 const {
@@ -58,13 +57,14 @@ contract('LifDeposit', accounts => {
     const entityDirector = accounts[6];
 
     const defaultWithdrawalDelay = '60000';
+    const defaultDepositValue = toWeiEther('1000');
 
     let lifToken;
     let project;
     let orgId;
     let lifDeposit;
-    
-    beforeEach(async () => {
+
+    const setupTokenAndDistribute = async () => {
         lifToken = await setupToken(lifOwner);
         await distributeLifTokens(
             lifToken,
@@ -75,9 +75,9 @@ contract('LifDeposit', accounts => {
                 entityDirector
             ]
         );
-        project = await TestHelper({
-            from: orgIdOwner
-        });
+    };
+
+    const setupOrgId = async () => {
         await project.setImplementation(
             OrgId,
             'OrgId'
@@ -88,6 +88,9 @@ contract('LifDeposit', accounts => {
                 orgIdOwner
             ]
         });
+    };
+
+    const setupLifDeposit = async () => {
         lifDeposit = await project.createProxy(LifDeposit, {
             initMethod: 'initialize',
             initArgs: [
@@ -99,35 +102,31 @@ contract('LifDeposit', accounts => {
         await lifDeposit
             .methods['setWithdrawDelay(uint256)'](defaultWithdrawalDelay)
             .send({ from: lifDepositOwner });
-    });
-    
-    describe('Upgradeability behaviour', () => {
+    };
 
-        it('should upgrade proxy and reveal a new function and interface', async () => {
-            lifDeposit = await project.upgradeProxy(
-                lifDeposit.address,
-                LifDepositUpgradeability,
-                {
-                    initMethod: 'initialize',
-                    initArgs: []
-                }
-            );
-            lifDeposit = await LifDepositUpgradeability.at(lifDeposit.address);
-            await lifDeposit.methods['setupNewStorage(uint256)']('100').send({
-                from: lifDepositOwner
-            });
-            (await lifDeposit.methods['newFunction()']().call()).should.equal('100');
-            (
-                await lifDeposit
-                    .methods['supportsInterface(bytes4)']('0x1b28d63e')
-                    .call()
-            ).should.be.true;
+    const setupOrganization = () => createOrganization(
+        orgId,
+        organizationOwner,
+        organizationHash,
+        organizationUri
+    );
+    
+    before(async () => {
+        await setupTokenAndDistribute();
+        project = await TestHelper({
+            from: orgIdOwner
         });
+        await setupOrgId();
+        await setupLifDeposit();
     });
 
     describe('Ownable behaviour', () => {
 
         describe('#transferOwnership(address)', () => {
+
+            after(async () => {
+                await setupLifDeposit();
+            });
 
             it('should fail if called by not an owner', async () => {
                 await assertRevert(
@@ -205,19 +204,37 @@ contract('LifDeposit', accounts => {
             ).should.be.true;
         });
     });
+    
+    describe('Upgradeability behaviour', () => {
 
-    describe('Lif deposit', () => {
-        let organizationId;
-
-        beforeEach(async () => {
-            organizationId = await createOrganization(
-                orgId,
-                organizationOwner,
-                organizationHash,
-                organizationUri
-            );
+        after(async () => {
+            await setupLifDeposit();
         });
 
+        it('should upgrade proxy and reveal a new function and interface', async () => {
+            lifDeposit = await project.upgradeProxy(
+                lifDeposit.address,
+                LifDepositUpgradeability,
+                {
+                    initMethod: 'initialize',
+                    initArgs: []
+                }
+            );
+            lifDeposit = await LifDepositUpgradeability.at(lifDeposit.address);
+            await lifDeposit.methods['setupNewStorage(uint256)']('100').send({
+                from: lifDepositOwner
+            });
+            (await lifDeposit.methods['newFunction()']().call()).should.equal('100');
+            (
+                await lifDeposit
+                    .methods['supportsInterface(bytes4)']('0x1b28d63e')
+                    .call()
+            ).should.be.true;
+        });
+    });
+
+    describe('Lif deposit', () => {
+        
         describe('#getLifTokenAddress()', () => {
 
             it('should return Lif token address', async () => {
@@ -228,6 +245,11 @@ contract('LifDeposit', accounts => {
         });
 
         describe('#addDeposit(bytes32,uint256)', () => {
+            let organizationId;
+
+            before(async () => {
+                organizationId = await setupOrganization();
+            });
 
             it('should fail if organization not found', async () => {
                 await assertRevert(
@@ -248,7 +270,7 @@ contract('LifDeposit', accounts => {
                         lifDeposit,
                         nonOwner,
                         organizationId,
-                        toWeiEther('1000'),
+                        defaultDepositValue,
                         lifToken
                     ),
                     'LifDeposit: action not authorized (must be owner or director)'
@@ -274,7 +296,7 @@ contract('LifDeposit', accounts => {
                         lifDeposit,
                         organizationOwner,
                         organizationId,
-                        toWeiEther('1000')
+                        defaultDepositValue
                     ),
                     'SafeERC20: low-level call failed'
                 );
@@ -285,13 +307,18 @@ contract('LifDeposit', accounts => {
                     lifDeposit,
                     organizationOwner,
                     organizationId,
-                    toWeiEther('1000'),
+                    defaultDepositValue,
                     lifToken
                 );
             });
         });
 
         describe('#balanceOf(uint256)', () => {
+            let organizationId;
+
+            before(async () => {
+                organizationId = await setupOrganization();
+            });
 
             it('should return 0 if no deposits has been added', async () => {
                 (await lifDeposit.methods['balanceOf(bytes32)'](zeroBytes).call())
@@ -299,20 +326,23 @@ contract('LifDeposit', accounts => {
             });
 
             it('should return deposit value', async () => {
-                const value = toWeiEther('1000');
                 await addDeposit(
                     lifDeposit,
                     organizationOwner,
                     organizationId,
-                    value,
+                    defaultDepositValue,
                     lifToken
                 );
                 (await lifDeposit.methods['balanceOf(bytes32)'](organizationId).call())
-                    .should.eq.BN(value);
+                    .should.eq.BN(defaultDepositValue);
             });
         });
 
         describe('#setWithdrawDelay(uint256)', () => {
+
+            after(async () => {
+                await setupLifDeposit();
+            });
 
             it('should fail if called not by an owner', async () => {
                 await assertRevert(
@@ -343,6 +373,10 @@ contract('LifDeposit', accounts => {
 
         describe('#getWithdrawDelay()', () => {
 
+            after(async () => {
+                await setupLifDeposit();
+            });
+
             it('should return withdrawDelay', async () => {
                 (
                     await lifDeposit.methods['getWithdrawDelay()']().call()
@@ -358,15 +392,16 @@ contract('LifDeposit', accounts => {
         });
 
         describe('#submitWithdrawalRequest(bytes32,uint256)', () => {
-            const depositValue = toWeiEther('1000');
+            let organizationId;
             const extraDepositValue = toWeiEther('1001');
 
-            beforeEach(async () => {
+            before(async () => {
+                organizationId = await setupOrganization();
                 await addDeposit(
                     lifDeposit,
                     organizationOwner,
                     organizationId,
-                    depositValue,
+                    defaultDepositValue,
                     lifToken
                 );
             });
@@ -378,7 +413,7 @@ contract('LifDeposit', accounts => {
                         organizationOwner,
                         lifDepositOwner,
                         zeroBytes,
-                        depositValue
+                        defaultDepositValue
                     ),
                     'LifDeposit: Organization not found'
                 );
@@ -391,7 +426,7 @@ contract('LifDeposit', accounts => {
                         nonOwner,
                         lifDepositOwner,
                         organizationId,
-                        depositValue
+                        defaultDepositValue
                     ),
                     'LifDeposit: action not authorized (must be owner or director)'
                 );
@@ -429,42 +464,31 @@ contract('LifDeposit', accounts => {
                     organizationOwner,
                     lifDepositOwner,
                     organizationId,
-                    depositValue
+                    defaultDepositValue
                 );
             });
         });
 
         describe('#getWithdrawalRequest(bytes32)', () => {
-            const depositValue = toWeiEther('1000');
             let organizationId;
-            let organizationIdNoRequest;
+            let organizationId2;
             let withdrawalRequest;
 
-            beforeEach(async () => {
-                organizationId = await createOrganization(
-                    orgId,
-                    organizationOwner,
-                    organizationHash,
-                    organizationUri
-                );
-                organizationIdNoRequest = await createOrganization(
-                    orgId,
-                    organizationOwner,
-                    organizationHash,
-                    organizationUri
-                );
+            before(async () => {
+                organizationId = await setupOrganization();
+                organizationId2 = await setupOrganization();
                 await addDeposit(
                     lifDeposit,
                     organizationOwner,
                     organizationId,
-                    depositValue,
+                    defaultDepositValue,
                     lifToken
                 );
                 await addDeposit(
                     lifDeposit,
                     organizationOwner,
-                    organizationIdNoRequest,
-                    depositValue,
+                    organizationId2,
+                    defaultDepositValue,
                     lifToken
                 );
                 withdrawalRequest = await submitWithdrawalRequest(
@@ -472,7 +496,7 @@ contract('LifDeposit', accounts => {
                     organizationOwner,
                     lifDepositOwner,
                     organizationId,
-                    depositValue
+                    defaultDepositValue
                 );
             });
 
@@ -484,7 +508,7 @@ contract('LifDeposit', accounts => {
 
             it('should return exist=false withdrawal request not found', async () => {
                 (await lifDeposit
-                    .methods['getWithdrawalRequest(bytes32)'](organizationIdNoRequest)
+                    .methods['getWithdrawalRequest(bytes32)'](organizationId2)
                     .call()).should.has.property('exist').to.false;
             });
 
@@ -497,7 +521,7 @@ contract('LifDeposit', accounts => {
                     .call()).should.has.property('exist').to.true;
                 (request).should.be.an('object')
                     .that.has.property('value')
-                    .to.equal(depositValue);
+                    .to.equal(defaultDepositValue);
                 (request).should.be.an('object')
                     .that.has.property('withdrawTime')
                     .to.equal(withdrawalRequest.withdrawTime);
@@ -505,21 +529,15 @@ contract('LifDeposit', accounts => {
         });
 
         describe('#withdrawDeposit(bytes32)', () => {
-            const depositValue = toWeiEther('1000');
             let organizationId;
-
-            beforeEach(async () => {
-                organizationId = await createOrganization(
-                    orgId,
-                    organizationOwner,
-                    organizationHash,
-                    organizationUri
-                );
+            
+            before(async () => {
+                organizationId = await setupOrganization();
                 await addDeposit(
                     lifDeposit,
                     organizationOwner,
                     organizationId,
-                    depositValue,
+                    defaultDepositValue,
                     lifToken
                 );
                 await submitWithdrawalRequest(
@@ -527,7 +545,7 @@ contract('LifDeposit', accounts => {
                     organizationOwner,
                     lifDepositOwner,
                     organizationId,
-                    depositValue
+                    defaultDepositValue
                 );
             });
 
@@ -556,25 +574,13 @@ contract('LifDeposit', accounts => {
             });
 
             it('should fail if withdrawal request not found', async () => {
-                const organizationId = await createOrganization(
-                    orgId,
-                    organizationOwner,
-                    organizationHash,
-                    organizationUri
-                );
-                await addDeposit(
-                    lifDeposit,
-                    organizationOwner,
-                    organizationId,
-                    depositValue,
-                    lifToken
-                );
+                const organizationId2 = await setupOrganization();
                 await assertRevert(
                     withdrawDeposit(
                         lifDeposit,
                         organizationOwner,
                         lifDepositOwner,
-                        organizationId
+                        organizationId2
                     ),
                     'LifDeposit: Withdrawal request not found'
                 );
