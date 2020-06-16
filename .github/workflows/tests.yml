@@ -18,9 +18,12 @@ jobs:
         run: npm test
 
       - name: Code coverage
-        uses: coverallsapp/github-action@master
         run: npm test
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
           SOLIDITY_COVERAGE: true
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        
