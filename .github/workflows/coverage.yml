@@ -1,4 +1,4 @@
-name: Automated Linting and Unit Tests
+name: Code coverage
 
 on:
   push:
