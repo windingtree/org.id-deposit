@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0",
+  "contract": {
+    "name": "LifDeposit",
+    "implementation": "0x47790e4EC0E221e614F20855FC88a7705C74a10d",
+    "proxy": "0x77952566F96a3B9F8c9CaAFf6cc414fd5c2D1543"
+  },
+  "owner": "0xA0B74BFE28223c9e08d6DBFa74B5bf4Da763f959",
+  "proxyAdmin": "0x3f087BCe43F4940094055cF4B971B6119d88dC2e",
+  "blockNumber": 8160961
+}

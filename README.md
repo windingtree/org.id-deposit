@@ -1,10 +1,10 @@
 ![Automated Linting and Unit Tests](https://github.com/windingtree/org.id-lif-deposit/workflows/Automated%20Linting%20and%20Unit%20Tests/badge.svg?branch=master) [![Coverage Status](https://coveralls.io/repos/github/windingtree/org.id-lif-deposit/badge.svg?branch=master)](https://coveralls.io/github/windingtree/org.id-lif-deposit?branch=master)
 
-<a href="https://orgid.tech"><img src="https://github.com/windingtree/branding/raw/master/org.id/svg/org.id-logo.svg" height="50" alt="ORG.ID"></a>
+<a href="https://orgid.tech"><img src="https://github.com/windingtree/branding/raw/master/org.id/svg/org.id-logo.svg" height="50" alt="ORGiD"></a>
 
-## ORG.ID Líf Deposit
+## ORGiD Líf Deposit
 
-ORG.ID Deposit is Trustworthiness clue for the ORG.ID Protocol
+ORGiD Deposit is Trustworthiness clue for the ORGiD Protocol
 
 ### Mainnet
 
@@ -14,7 +14,7 @@ ORG.ID Deposit is Trustworthiness clue for the ORG.ID Protocol
 
 ### Ropsten
 
-`<not_deployed_yet>` [full config](./.openzeppelin/ropsten-LifDeposit.json)
+`0x77952566F96a3B9F8c9CaAFf6cc414fd5c2D1543` [full config](./.openzeppelin/ropsten-LifDeposit.json) v1.0.0
 
 
 

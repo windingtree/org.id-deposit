@@ -1,6 +1,6 @@
 {
   "name": "@windingtree/org.id-lif-deposit",
-  "version": "0.12.0",
+  "version": "1.0.0",
   "description": "ORG.ID Lif Deposit is Trustworthiness clue for the ORG.ID Protocol",
   "directories": {
     "test": "test",
@@ -19,7 +19,7 @@
     "clean": "rimraf build",
     "build:index": "node scripts/build-index.js > index.js",
     "set-oz-version": "npx openzeppelin bump `node -e \"const p = require('./package.json');console.log(p.version);\"`",
-    "version": "npm run set-oz-version && git add .openzeppelin/project.json && npm run build-index",
+    "version": "npm run set-oz-version && git add .openzeppelin/project.json && npm run build:index",
     "prebuild": "npm run clean",
     "build": "npx truffle compile && npm run build:index"
   },
@@ -55,21 +55,21 @@
     "@openzeppelin/cli": "2.7.1",
     "@truffle/contract": "4.2.8",
     "@truffle/hdwallet-provider": "1.0.35",
-    "@windingtree/org.id": "0.12.1",
+    "@windingtree/org.id": "1.0.1",
     "chai": "4.2.0",
     "bn-chai": "1.0.1",
     "coveralls": "3.1.0",
-    "eslint": "7.2.0",
+    "eslint": "7.3.1",
     "ganache-cli": "6.9.1",
     "husky": "4.2.5",
     "rimraf": "3.0.2",
-    "solc": "0.6.9",
+    "solc": "0.6.10",
     "solhint": "3.0.0",
-    "solidity-coverage": "0.7.7",
+    "solidity-coverage": "0.7.8",
     "solmd": "0.4.0",
-    "truffle": "5.1.30",
+    "truffle": "5.1.31",
     "truffle-flattener": "1.4.4",
-    "truffle-security": "1.7.1"
+    "truffle-security": "1.7.3"
   },
   "engines": {
     "node": ">=10"

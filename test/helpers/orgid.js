@@ -6,7 +6,8 @@ const { zeroAddress, zeroBytes } = require('../helpers/constants');
  * @param {string} string Part of the base for id generation
  * @param {atring} [solt=Math.random().toString()] Solt string
  */
-module.exports.generateId = (string, solt = Math.random().toString()) => web3.utils.keccak256(`${string}${solt}`);
+const generateId = (string, solt = Math.random().toString()) => web3.utils.keccak256(`${string}${solt}`);
+module.exports.generateId = generateId;
 
 /**
  * Creates an organization
@@ -23,7 +24,8 @@ module.exports.createOrganization = async (
     uri
 ) => {
     const result = await contract
-        .methods['createOrganization(bytes32,string,string,string)'](
+        .methods['createOrganization(bytes32,bytes32,string,string,string)'](
+            generateId(),
             hash,
             uri,
             '',

@@ -115,8 +115,8 @@ contract LifDeposit is LifDepositInterface, Ownable, ERC165, Initializable {
     ) public initializer {
         _transferOwnership(__owner);
         require(
-            ERC165Checker._supportsInterface(_orgId, 0x212862a6),
-            "LifDeposit: OrgId contract must support ORG.ID interface"
+            ERC165Checker._supportsInterface(_orgId, 0x0f4893ef),
+            "LifDeposit: OrgId contract must support ORGiD interface"
         );
         orgId = OrgIdInterface(_orgId);
         lif = IERC20(_lif);

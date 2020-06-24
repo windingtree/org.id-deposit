@@ -121,7 +121,7 @@ contract('LifDeposit', accounts => {
     });
 
     describe('Initializer', () => {
-        it('shoudl fail if orgId contract not supported ORG.ID interface', async () => {
+        it('shoudl fail if orgId contract not supported ORGiD interface', async () => {
             await assertRevert(
                 project.createProxy(LifDeposit, {
                     initMethod: 'initialize',
