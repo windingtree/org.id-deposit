@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout
+      uses: actions/checkout@1.2.0
 
     - name: Set up Node.js
       uses: actions/setup-node
