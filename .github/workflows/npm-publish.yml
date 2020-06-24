@@ -1,10 +1,10 @@
 name: npm-publish
+
 on:
   push:
-    branches:
-      - master
     tags:
-      - '**'
+    - '*'
+
 jobs:
   npm-publish:
     name: npm-publish
