@@ -8,13 +8,11 @@ ORGiD Deposit is Trustworthiness clue for the ORGiD Protocol
 
 ### Mainnet
 
-`<not_deployed_yet>` [full config](./.openzeppelin/main-LifDeposit.json)
-
-**Warning: ownership should be transferred to [DAO](https://github.com/windingtree/dao).**
+`0x7Fa6Ad0866Caa4aBdE8d60B905B3Ae60A3E0f014` [full config](./.openzeppelin/main-LifDeposit.json) v1.0.0  
 
 ### Ropsten
 
-`0x77952566F96a3B9F8c9CaAFf6cc414fd5c2D1543` [full config](./.openzeppelin/ropsten-LifDeposit.json) v1.0.0
+`0x77952566F96a3B9F8c9CaAFf6cc414fd5c2D1543` [full config](./.openzeppelin/ropsten-LifDeposit.json) v1.0.0  
 
 
 
