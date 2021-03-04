@@ -56,8 +56,9 @@
     "@truffle/contract": "4.2.8",
     "@truffle/hdwallet-provider": "1.0.35",
     "@windingtree/org.id": "1.0.1",
-    "chai": "4.2.0",
+    "@windingtree/smart-contracts-tools": "0.1.1",
     "bn-chai": "1.0.1",
+    "chai": "4.2.0",
     "coveralls": "3.1.0",
     "eslint": "7.3.1",
     "ganache-cli": "6.9.1",
@@ -69,8 +70,7 @@
     "solmd": "0.4.0",
     "truffle": "5.1.31",
     "truffle-flattener": "1.4.4",
-    "truffle-security": "1.7.3",
-    "@windingtree/smart-contracts-tools": "0.1.1"
+    "truffle-security": "1.7.3"
   },
   "engines": {
     "node": ">=10"
