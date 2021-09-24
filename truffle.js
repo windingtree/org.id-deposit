@@ -18,8 +18,8 @@ const getInfuraConfig = (networkName, networkId) => {
         network_id: networkId, // eslint-disable-line camelcase
         provider: () => {
             return new HDWalletProvider(
-                keys.mnemonic,
-                `https://${networkName}.infura.io/v3/` + keys.infura_projectid,
+                process.env.MNM,
+                `https://${networkName}.infura.io/v3/` + process.env.INFURA,
                 0,
                 10
             );
@@ -32,8 +32,12 @@ const getInfuraConfig = (networkName, networkId) => {
 module.exports = {
     plugins: [
         'solidity-coverage',
-        'truffle-security'
+        'truffle-plugin-verify'
     ],
+
+    api_keys: {
+        etherscan: ''
+    },
 
     networks: {
         development: {

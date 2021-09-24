@@ -35,3 +35,5 @@ zos.dev-*
 
 # Etc
 temp
+cache
+artifacts
