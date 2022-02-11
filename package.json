@@ -49,7 +49,7 @@
   "author": "Winding Tree Developers <dev@windingtree.com>",
   "license": "GPL-3.0-only",
   "dependencies": {
-    "@openzeppelin/contracts": "2.5.0"
+    "@openzeppelin/contracts": "4.4.2"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
