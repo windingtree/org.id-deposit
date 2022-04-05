@@ -7,18 +7,16 @@
     "doc": "doc"
   },
   "scripts": {
-    "test": "scripts/test.sh",
-    "lint": "npx eslint test scripts && npx solhint 'contracts/**/*.sol'",
-    "lint:fix": "npx eslint test scripts --fix && npx solhint 'contracts/**/*.sol'",
+    "compile": "hardhat compile",
+    "docgen": "hardhat docgen",
+    "test": "hardhat test",
     "verify": "npx truffle run verify --mode=quick --ci LifDeposit.sol",
-    "coverage": "SOLIDITY_COVERAGE=true npm run test",
-    "soldoc": "scripts/soldoc.sh",
-    "flattener": "scripts/flattener.sh",
     "build:index": "node scripts/build-index.js > index.js",
     "set-oz-version": "npx openzeppelin bump `node -e \"const p = require('./package.json');console.log(p.version);\"`",
     "version": "npm run set-oz-version && git add .openzeppelin/project.json && npm run build:index",
     "prebuild": "npm run clean",
-    "build": "npx truffle compile && npm run build:index"
+    "commit": "git-cz",
+    "changelog": "conventional-changelog -p angular -r 2 -i CHANGELOG.md -s"
   },
   "bin": {
     "orgid-tools": "./scripts/tools/index.js"
