@@ -1,23 +1,49 @@
-pragma solidity >=0.5.16;
+// SPDX-License-Identifier: GPL-3.0-only
+pragma solidity ^0.8.13;
 
-import "@openzeppelin/contracts/introspection/ERC165.sol";
-import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "@openzeppelin/contracts/ownership/Ownable.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/upgrades/contracts/Initializable.sol";
-import "@windingtree/org.id/contracts/OrgIdInterface.sol";
-import "./LifDepositInterface.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "./interfaces/ILifDeposit.sol";
+
+address constant MULTI_SIG = 0x876969b13dcf884C13D4b4f003B69229E6b7966A;
+address constant LIF2 = 0x9C38688E5ACB9eD6049c8502650db5Ac8Ef96465;
+
+interface OrgIdInterfaceLike {
+    function getOrganization(bytes32 _orgId)
+        external
+        view
+        returns (
+            bool exists,
+            bytes32 orgId,
+            bytes32 orgJsonHash,
+            string memory orgJsonUri,
+            string memory orgJsonUriBackup1,
+            string memory orgJsonUriBackup2,
+            bytes32 parentOrgId,
+            address owner,
+            address director,
+            bool isActive,
+            bool isDirectorshipAccepted
+        );
+}
+
+interface ClaimLike {
+    function claim() external;
+}
 
 /**
  * @title LifDeposit contract
  * @dev A contract that manages deposits in Lif tokens
  */
-contract LifDeposit is LifDepositInterface, Ownable, ERC165, Initializable {
-
-    using SafeMath for uint256;
+contract LifDeposit is ILifDeposit, Ownable, Initializable, ERC165 {
     using SafeERC20 for IERC20;
+
+    // Preserve storage gaps from older OpenZeppelin versions
+    uint256[52] private ______gap;  // Initializable & Ownable
 
     /// @dev Withdrawal request structure
     struct WithdrawalRequest {
@@ -26,7 +52,7 @@ contract LifDeposit is LifDepositInterface, Ownable, ERC165, Initializable {
     }
 
     /// @dev OrgId instance
-    OrgIdInterface internal orgId;
+    OrgIdInterfaceLike internal orgId;
 
     /// @dev Lif token instance
     IERC20 internal lif;
@@ -37,7 +63,7 @@ contract LifDeposit is LifDepositInterface, Ownable, ERC165, Initializable {
     /// @dev Mapped list of deposits
     mapping (bytes32 => uint256) internal deposits;
 
-    /// @dev Deposits wiwdrawal requests
+    /// @dev Deposits withdrawal requests
     mapping (bytes32 => WithdrawalRequest) internal withdrawalRequests;
 
     /**
@@ -102,61 +128,23 @@ contract LifDeposit is LifDepositInterface, Ownable, ERC165, Initializable {
         _;
     }
 
-    /**
-     * @dev Initializer for upgradeable contracts
-     * @param __owner The address of the contract owner
-     * @param _orgId Address of the OrgId contract
-     * @param _lif Address of the Lif token
-     */
-    function initialize(
-        address payable __owner,
-        address _orgId,
-        address _lif
-    ) public initializer {
-        _transferOwnership(__owner);
-        require(
-            ERC165Checker._supportsInterface(_orgId, 0x0f4893ef),
-            "LifDeposit: OrgId contract must support ORGiD interface"
-        );
-        orgId = OrgIdInterface(_orgId);
-        lif = IERC20(_lif);
-        setInterfaces(); 
-    }
-
-    /**
-     * @dev Returns Lif token address
-     * @return {
-         "lifToken": "Address of the Lif token"
-     }
-     */
+    /// @inheritdoc ILifDeposit
     function getLifTokenAddress() external view returns (address lifToken) {
         lifToken = address(lif);
     }
 
-    /**
-     * @dev Returns withdrawDelay value
-     * @return {
-         "delay": "Delay time in seconds before the requested withdrawal will be possible"
-     }
-     */
+    /// @inheritdoc ILifDeposit
     function getWithdrawDelay() external view returns (uint256 delay) {
         delay = withdrawDelay;
     }
 
-    /**
-     * @dev Changing withdrawDelay value
-     * @param _withdrawDelay New withdrawDelay value in seconds
-     */
+    /// @inheritdoc ILifDeposit
     function setWithdrawDelay(uint256 _withdrawDelay) external onlyOwner {
         emit WithdrawDelayChanged(withdrawDelay, _withdrawDelay);
         withdrawDelay = _withdrawDelay;
     }
 
-    /**
-     * @dev Makes deposit of Lif tokens
-     * @param organization The organization OrgId
-     * @param value The value to be deposited
-     */
+    /// @inheritdoc ILifDeposit
     function addDeposit(
         bytes32 organization,
         uint256 value
@@ -166,15 +154,11 @@ contract LifDeposit is LifDepositInterface, Ownable, ERC165, Initializable {
     {
         require(value > 0, "LifDeposit: Invalid deposit value");
         lif.safeTransferFrom(msg.sender, address(this), value);
-        deposits[organization] = deposits[organization].add(value);
+        deposits[organization] += value;
         emit LifDepositAdded(organization, msg.sender, value);
     }
 
-    /**
-     * @dev Submits withdrawal request
-     * @param organization The organization OrgId
-     * @param value The value to withdraw
-     */
+    /// @inheritdoc ILifDeposit
     function submitWithdrawalRequest(
         bytes32 organization,
         uint256 value
@@ -187,20 +171,12 @@ contract LifDeposit is LifDepositInterface, Ownable, ERC165, Initializable {
             value <= deposits[organization],
             "LifDeposit: Insufficient balance"
         );
-        uint256 withdrawTime = time().add(withdrawDelay);
+        uint256 withdrawTime = block.timestamp + withdrawDelay;
         withdrawalRequests[organization] = WithdrawalRequest(value, withdrawTime);
         emit WithdrawalRequested(organization, msg.sender, value, withdrawTime);
     }
 
-    /**
-     * @dev Returns information about deposit withdrawal request
-     * @param organization The organization Id
-     * @return {
-         "exists": "The request existence flag",
-         "value": "Deposit withdrawal value",
-         "withdrawTime": "Withraw time on seconds"
-     }
-     */
+    /// @inheritdoc ILifDeposit
     function getWithdrawalRequest(bytes32 organization)
         external
         view 
@@ -221,9 +197,7 @@ contract LifDeposit is LifDepositInterface, Ownable, ERC165, Initializable {
     /**
      * @dev Returns deposit value of the organization
      * @param organization The organization Id
-     * @return {
-         "balance": "Deposit value"
-     }
+     * @return balance Deposit value
      */
     function balanceOf(bytes32 organization)
         external
@@ -233,10 +207,7 @@ contract LifDeposit is LifDepositInterface, Ownable, ERC165, Initializable {
         balance = deposits[organization];
     }
 
-    /**
-     * @dev Trunsfers deposited tokens to the sender
-     * @param organization The organization OrgId
-     */
+    /// @inheritdoc ILifDeposit
     function withdrawDeposit(
         bytes32 organization
     )
@@ -248,50 +219,38 @@ contract LifDeposit is LifDepositInterface, Ownable, ERC165, Initializable {
             "LifDeposit: Withdrawal request not found"
         );
         require(
-            withdrawalRequests[organization].withdrawTime <= time(),
+            withdrawalRequests[organization].withdrawTime <= block.timestamp,
             "LifDeposit: Withdrawal request delay period not passed"
         );
         uint256 withdrawalValue = withdrawalRequests[organization].value;
-        deposits[organization] = deposits[organization].sub(withdrawalValue);
+        deposits[organization] -= withdrawalValue;
         delete withdrawalRequests[organization];
         lif.safeTransfer(msg.sender, withdrawalValue);
         emit DepositWithdrawn(organization, msg.sender, withdrawalValue);
     }
 
-    /**
-     * @dev Set the list of contract interfaces supported
-     */
-    function setInterfaces() public {
-        LifDepositInterface ldp;
-        Ownable own;
-        bytes4[3] memory interfaceIds = [
-            // ERC165 interface: 0x01ffc9a7
-            bytes4(0x01ffc9a7),
-
-            // ownable interface: 0x7f5828d0
-            own.owner.selector ^ 
-            own.transferOwnership.selector, 
-
-            // Lif deposit interface: 0xe936be58
-            ldp.getLifTokenAddress.selector ^
-            ldp.getWithdrawDelay.selector ^
-            ldp.setWithdrawDelay.selector ^
-            ldp.addDeposit.selector ^
-            ldp.submitWithdrawalRequest.selector ^
-            ldp.getWithdrawalRequest.selector ^
-            ldp.withdrawDeposit.selector
-        ];
-        for (uint256 i = 0; i < interfaceIds.length; i++) {
-            _registerInterface(interfaceIds[i]);
-        }
+    /// @inheritdoc IERC165
+    function supportsInterface(bytes4 interfaceId) public virtual override view returns (bool) {
+        return (
+            interfaceId == bytes4(0x7f5828d0) ||            // Ownable (EIP173) access control
+            interfaceId == bytes4(0xe936be58) ||            // LifDeposit interface without LifToken setter
+            super.supportsInterface(interfaceId));          // Otherwise check with super (IERC165)
     }
 
-    /**
-     * @dev Get current time
-     * This function can be overriden for testing purposes
-     * @return uint256 Current block time
-     */
-    function time() internal view returns (uint256) {
-        return now;// solhint-disable-line not-rely-on-time
+    /// @dev Upgrade function to ram owner to multi-sig.
+    function upgrade() external {
+        require(owner() != MULTI_SIG, "LifDeposit/owner-already-multisig");
+        require(address(lif) != LIF2, "LifDeposit/token-already-set");
+        _transferOwnership(MULTI_SIG);
+
+        uint256 oldBalance = lif.balanceOf(address(this));
+
+        // claim LIF2
+        lif.approve(address(LIF2), lif.balanceOf(address(this)));
+        ClaimLike(address(LIF2)).claim();
+
+        require(IERC20(LIF2).balanceOf(address(this)) == oldBalance, "LifDeposit: Upgrade fail");
+
+        lif = IERC20(LIF2);
     }
 }

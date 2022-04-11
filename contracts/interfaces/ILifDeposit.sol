@@ -1,29 +1,27 @@
-pragma solidity >=0.5.16;
+// SPDX-License-Identifier: GPL-3.0-only
+pragma solidity ^0.8.13;
 
 /**
  * @title LifDeposit contract interface
  * @dev A contract that manages deposits in Lif tokens 
  */
-contract LifDepositInterface {
+interface ILifDeposit {
 
     /**
-     * @dev Returns Lif token address
-     * @return {
-         "lifToken": "Address of the Lif token"
+     * @dev Lif token getter
+     * @return lifToken Address of the Lif token
      }
      */
     function getLifTokenAddress() external view returns (address lifToken);
 
     /**
-     * @dev Returns withdrawDelay value
-     * @return {
-         "delay": "Delay time in seconds before the requested withdrawal will be possible"
-     }
+     * @dev Withdrawal delay getter
+     * @return delay Delay time in seconds before the requested withdrawal will be possible
      */
     function getWithdrawDelay() external view returns (uint256 delay);
 
     /**
-     * @dev Changing withdrawDelay value
+     * @dev Withdrawal delay setter
      * @param _withdrawDelay New withdrawDelay value in seconds
      */
     function setWithdrawDelay(uint256 _withdrawDelay) external;
@@ -51,11 +49,9 @@ contract LifDepositInterface {
     /**
      * @dev Returns information about deposit withdrawal request
      * @param organization The organization Id
-     * @return {
-         "exists": "The request existence flag",
-         "value": "Deposit withdrawal value",
-         "withdrawTime": "Withraw time on seconds"
-     }
+     * @return exists The request existence flag
+     * @return value Deposit withdrawal value
+     * @return withdrawTime Withraw time on seconds
      */
     function getWithdrawalRequest(bytes32 organization)
         external
@@ -67,7 +63,7 @@ contract LifDepositInterface {
         );
 
     /**
-     * @dev Trunsfers deposited tokens to the sender
+     * @dev Transfer deposited tokens to the sender
      * @param organization The organization OrgId
      */
     function withdrawDeposit(

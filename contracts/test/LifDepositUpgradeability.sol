@@ -1,4 +1,5 @@
-pragma solidity >=0.5.16;
+// SPDX-License-Identifier: GPL-3.0-only
+pragma solidity ^0.8.13;
 
 import "../LifDeposit.sol";
 
@@ -13,8 +14,11 @@ contract LifDepositUpgradeability is LifDeposit {
         return test;
     }
 
-    function initialize() external {
-        _registerInterface(this.newFunction.selector);// 0x1b28d63e
+    function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
+        return (
+            interfaceId == this.newFunction.selector || 
+            super.supportsInterface(interfaceId)
+        );
     }
 
     function setupNewStorage(uint256 value) external onlyOwner {

@@ -1,4 +1,5 @@
-pragma solidity >=0.5.16;
+// SPDX-License-Identifier: GPL-3.0-only
+pragma solidity ^0.8.13;
 
 import "../LifDeposit.sol";
 
@@ -20,9 +21,7 @@ contract LifDepositTimeMachine is LifDeposit {
 
     /**
      * @dev Get current contract time
-     * @return {
-         "contractTime": "Current time inside the contract used as 'now'"
-     }
+     * @return contractTime Current time inside the contract used as 'now'
      */
     function currentTime() public view returns (uint256 contractTime) {
         contractTime = time();
@@ -30,11 +29,11 @@ contract LifDepositTimeMachine is LifDeposit {
 
     /**
      * @dev Set new contract time
-     * @param time New time value
+     * @param _time New time value
      */
-    function setCurrentTime(uint256 time) external {
-        emit TimeMachine(currentTime(), time);
-        _currentTime = time;
+    function setCurrentTime(uint256 _time) external {
+        emit TimeMachine(currentTime(), _time);
+        _currentTime = _time;
     }
 
     /**
@@ -43,6 +42,6 @@ contract LifDepositTimeMachine is LifDeposit {
      * @return uint256 Current block time
      */
     function time() internal view returns (uint256) {
-        return _currentTime == 0 ? now : _currentTime;// solhint-disable-line not-rely-on-time
+        return _currentTime == 0 ? block.timestamp : _currentTime;// solhint-disable-line not-rely-on-time
     }
 }

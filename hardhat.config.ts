@@ -31,7 +31,14 @@ const config: HardhatUserConfig = {
     deployer: 0,
     alice: 1,
     bob: 2,
-    carol: 3
+    carol: 3,
+    gov: 4,
+    lifOwner: 5,
+    nonOwner: 6,
+    orgIdOwner: 7,
+    lifDepositOwner: 8,
+    organizationOwner: 9,
+    entityDirector: 10
   },
   networks: {
     hardhat: {
