@@ -11,7 +11,7 @@ import { setupUser, setupUsers } from './utils'
 import { expect } from './chai-setup'
 import { BigNumber, constants, utils } from 'ethers'
 
-import { IERC20, IOrgIdLike, LifDeposit } from '../typechain'
+import { IERC20, OrgIdInterfaceLike, LifDeposit } from '../typechain'
 
 const COMMUNITY_MULTI_SIG = '0x876969b13dcf884C13D4b4f003B69229E6b7966A'
 const LIF_DEPOSIT_PROXY = '0x7Fa6Ad0866Caa4aBdE8d60B905B3Ae60A3E0f014'
@@ -45,7 +45,7 @@ const setup = deployments.createFixture(async () => {
     )) as LifDeposit,
     lif1: (await ethers.getContractAt('IERC20', LIF1)) as IERC20,
     lif2: (await ethers.getContractAt('IERC20', LIF2)) as IERC20,
-    orgId: (await ethers.getContractAt('IOrgIdLike', ORGID)) as IOrgIdLike
+    orgId: (await ethers.getContractAt('OrgIdInterfaceLike', ORGID)) as OrgIdInterfaceLike
   }
   const users = await setupUsers(await getUnnamedAccounts(), contracts)
 
@@ -74,25 +74,25 @@ describe('LifDeposit', function () {
     lifDeposit: LifDeposit;
     lif1: IERC20;
     lif2: IERC20;
-    orgId: IOrgIdLike;
+    orgId: OrgIdInterfaceLike;
   }
   let bob: { address: string } & {
     lifDeposit: LifDeposit;
     lif1: IERC20;
     lif2: IERC20;
-    orgId: IOrgIdLike;
+    orgId: OrgIdInterfaceLike;
   }
   let gov: { address: string } & {
     lifDeposit: LifDeposit;
     lif1: IERC20;
     lif2: IERC20;
-    orgId: IOrgIdLike;
+    orgId: OrgIdInterfaceLike;
   }
   let organizationOwner: { address: string } & {
     lifDeposit: LifDeposit;
     lif1: IERC20;
     lif2: IERC20;
-    orgId: IOrgIdLike;
+    orgId: OrgIdInterfaceLike;
   }
   let ORGANIZATION_1: string
   let ORGANIZATION_2: string
@@ -211,7 +211,7 @@ describe('LifDeposit', function () {
       expect(await alice.lifDeposit.getLifTokenAddress()).to.be.equal(LIF2)
     })
     it('cannot call upgrade again a second time', async () => {
-      expect(await gov.lifDeposit.upgrade())
+      await expect(gov.lifDeposit.upgrade())
         .to.be.revertedWith('LifDeposit/token-already-set')
     })
     it('sample of balance preservations', async () => {
