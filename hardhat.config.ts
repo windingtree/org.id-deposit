@@ -81,7 +81,8 @@ const config: HardhatUserConfig = {
     mainnet: {
       url: nodeUrl('mainnet'),
       accounts: accounts('mainnet'),
-      tags: ['production']
+      tags: ['production'],
+      live: true
     },
     rinkeby: {
       url: nodeUrl('rinkeby'),
