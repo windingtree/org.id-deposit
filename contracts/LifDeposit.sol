@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/ILifDeposit.sol";
 
-address constant MULTI_SIG = 0x876969b13dcf884C13D4b4f003B69229E6b7966A;
 address constant LIF2 = 0x9C38688E5ACB9eD6049c8502650db5Ac8Ef96465;
 
 interface OrgIdInterfaceLike {
@@ -239,9 +238,7 @@ contract LifDeposit is ILifDeposit, Ownable, Initializable, ERC165 {
 
     /// @dev Upgrade function to ram owner to multi-sig.
     function upgrade() external {
-        require(owner() != MULTI_SIG, "LifDeposit/owner-already-multisig");
         require(address(lif) != LIF2, "LifDeposit/token-already-set");
-        _transferOwnership(MULTI_SIG);
 
         uint256 oldBalance = lif.balanceOf(address(this));
 
@@ -249,7 +246,7 @@ contract LifDeposit is ILifDeposit, Ownable, Initializable, ERC165 {
         lif.approve(address(LIF2), lif.balanceOf(address(this)));
         ClaimLike(address(LIF2)).claim();
 
-        require(IERC20(LIF2).balanceOf(address(this)) == oldBalance, "LifDeposit: Upgrade fail");
+        require(IERC20(LIF2).balanceOf(address(this)) == oldBalance, "LifDeposit/upgrade-fail");
 
         lif = IERC20(LIF2);
     }
