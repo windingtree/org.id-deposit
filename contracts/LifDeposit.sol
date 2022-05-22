@@ -122,7 +122,7 @@ contract LifDeposit is ILifDeposit, Ownable, Initializable, ERC165 {
         require(
             organizationOwner == msg.sender || 
             organizationDirector == msg.sender, 
-            "LifDeposit: action not authorized (must be owner or director)"
+            "LifDeposit: action not authorized"
         );
         _;
     }
