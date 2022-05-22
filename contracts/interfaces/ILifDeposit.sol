@@ -3,10 +3,9 @@ pragma solidity ^0.8.13;
 
 /**
  * @title LifDeposit contract interface
- * @dev A contract that manages deposits in Lif tokens 
+ * @dev A contract that manages deposits in Lif tokens
  */
 interface ILifDeposit {
-
     /**
      * @dev Lif token getter
      * @return lifToken Address of the Lif token
@@ -31,20 +30,15 @@ interface ILifDeposit {
      * @param organization The organization Id
      * @param value The value to be deposited
      */
-    function addDeposit(
-        bytes32 organization,
-        uint256 value
-    ) external;
+    function addDeposit(bytes32 organization, uint256 value) external;
 
     /**
      * @dev Submits withdrawal request
      * @param organization The organization Id
      * @param value The value to withdraw
      */
-    function submitWithdrawalRequest(
-        bytes32 organization,
-        uint256 value
-    ) external;
+    function submitWithdrawalRequest(bytes32 organization, uint256 value)
+        external;
 
     /**
      * @dev Returns information about deposit withdrawal request
@@ -55,7 +49,7 @@ interface ILifDeposit {
      */
     function getWithdrawalRequest(bytes32 organization)
         external
-        view 
+        view
         returns (
             bool exists,
             uint256 value,
@@ -66,7 +60,5 @@ interface ILifDeposit {
      * @dev Transfer deposited tokens to the sender
      * @param organization The organization OrgId
      */
-    function withdrawDeposit(
-        bytes32 organization
-    ) external;
+    function withdrawDeposit(bytes32 organization) external;
 }

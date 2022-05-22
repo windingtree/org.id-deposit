@@ -12,6 +12,14 @@ import "./interfaces/ILifDeposit.sol";
 address constant LIF2 = 0x9C38688E5ACB9eD6049c8502650db5Ac8Ef96465;
 
 interface OrgIdInterfaceLike {
+    function createOrganization(
+        bytes32 salt,
+        bytes32 orgJsonHash,
+        string calldata orgJsonUri,
+        string calldata orgJsonUriBackup1,
+        string calldata orgJsonUriBackup2
+    ) external returns (bytes32 id);
+
     function getOrganization(bytes32 _orgId)
         external
         view
@@ -42,7 +50,7 @@ contract LifDeposit is ILifDeposit, Ownable, Initializable, ERC165 {
     using SafeERC20 for IERC20;
 
     // Preserve storage gaps from older OpenZeppelin versions
-    uint256[52] private ______gap;  // Initializable & Ownable
+    uint256[52] private ______gap; // Initializable & Ownable
 
     /// @dev Withdrawal request structure
     struct WithdrawalRequest {
@@ -60,10 +68,10 @@ contract LifDeposit is ILifDeposit, Ownable, Initializable, ERC165 {
     uint256 internal withdrawDelay;
 
     /// @dev Mapped list of deposits
-    mapping (bytes32 => uint256) internal deposits;
+    mapping(bytes32 => uint256) internal deposits;
 
     /// @dev Deposits withdrawal requests
-    mapping (bytes32 => WithdrawalRequest) internal withdrawalRequests;
+    mapping(bytes32 => WithdrawalRequest) internal withdrawalRequests;
 
     /**
      * @dev Event emitted when Lif deposit has been added
@@ -116,12 +124,12 @@ contract LifDeposit is ILifDeposit, Ownable, Initializable, ERC165 {
             address organizationOwner,
             address organizationDirector,
             ,
-            
+
         ) = orgId.getOrganization(organization);
         require(exists, "LifDeposit: Organization not found");
         require(
-            organizationOwner == msg.sender || 
-            organizationDirector == msg.sender, 
+            organizationOwner == msg.sender ||
+                organizationDirector == msg.sender,
             "LifDeposit: action not authorized"
         );
         _;
@@ -144,11 +152,8 @@ contract LifDeposit is ILifDeposit, Ownable, Initializable, ERC165 {
     }
 
     /// @inheritdoc ILifDeposit
-    function addDeposit(
-        bytes32 organization,
-        uint256 value
-    )
-        external 
+    function addDeposit(bytes32 organization, uint256 value)
+        external
         onlyOrganizationOwnerOrDirector(organization)
     {
         require(value > 0, "LifDeposit: Invalid deposit value");
@@ -158,11 +163,8 @@ contract LifDeposit is ILifDeposit, Ownable, Initializable, ERC165 {
     }
 
     /// @inheritdoc ILifDeposit
-    function submitWithdrawalRequest(
-        bytes32 organization,
-        uint256 value
-    )
-        external 
+    function submitWithdrawalRequest(bytes32 organization, uint256 value)
+        external
         onlyOrganizationOwnerOrDirector(organization)
     {
         require(value > 0, "LifDeposit: Invalid withdrawal value");
@@ -171,21 +173,24 @@ contract LifDeposit is ILifDeposit, Ownable, Initializable, ERC165 {
             "LifDeposit: Insufficient balance"
         );
         uint256 withdrawTime = block.timestamp + withdrawDelay;
-        withdrawalRequests[organization] = WithdrawalRequest(value, withdrawTime);
+        withdrawalRequests[organization] = WithdrawalRequest(
+            value,
+            withdrawTime
+        );
         emit WithdrawalRequested(organization, msg.sender, value, withdrawTime);
     }
 
     /// @inheritdoc ILifDeposit
     function getWithdrawalRequest(bytes32 organization)
         external
-        view 
+        view
         returns (
             bool exists,
             uint256 value,
             uint256 withdrawTime
         )
     {
-        exists = 
+        exists =
             organization != bytes32(0) &&
             deposits[organization] > 0 &&
             withdrawalRequests[organization].value != 0;
@@ -207,10 +212,8 @@ contract LifDeposit is ILifDeposit, Ownable, Initializable, ERC165 {
     }
 
     /// @inheritdoc ILifDeposit
-    function withdrawDeposit(
-        bytes32 organization
-    )
-        external 
+    function withdrawDeposit(bytes32 organization)
+        external
         onlyOrganizationOwnerOrDirector(organization)
     {
         require(
@@ -229,11 +232,16 @@ contract LifDeposit is ILifDeposit, Ownable, Initializable, ERC165 {
     }
 
     /// @inheritdoc IERC165
-    function supportsInterface(bytes4 interfaceId) public virtual override view returns (bool) {
-        return (
-            interfaceId == bytes4(0x7f5828d0) ||            // Ownable (EIP173) access control
-            interfaceId == bytes4(0xe936be58) ||            // LifDeposit interface without LifToken setter
-            super.supportsInterface(interfaceId));          // Otherwise check with super (IERC165)
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override
+        returns (bool)
+    {
+        return (interfaceId == bytes4(0x7f5828d0) || // Ownable (EIP173) access control
+            interfaceId == bytes4(0xe936be58) || // LifDeposit interface without LifToken setter
+            super.supportsInterface(interfaceId)); // Otherwise check with super (IERC165)
     }
 
     /// @dev Upgrade function to ram owner to multi-sig.
@@ -246,7 +254,10 @@ contract LifDeposit is ILifDeposit, Ownable, Initializable, ERC165 {
         lif.approve(address(LIF2), lif.balanceOf(address(this)));
         ClaimLike(address(LIF2)).claim();
 
-        require(IERC20(LIF2).balanceOf(address(this)) == oldBalance, "LifDeposit/upgrade-fail");
+        require(
+            IERC20(LIF2).balanceOf(address(this)) == oldBalance,
+            "LifDeposit/upgrade-fail"
+        );
 
         lif = IERC20(LIF2);
     }

@@ -7,8 +7,8 @@
     "doc": "doc"
   },
   "scripts": {
-    "lint": "npx eslint test scripts && npx solhint 'contracts/**/*.sol'",
-    "lint:fix": "npx eslint test scripts --fix && npx solhint 'contracts/**/*.sol'",
+    "lint": "npx eslint test && npx solhint 'contracts/**/*.sol'",
+    "lint:fix": "npx eslint test --fix && npx solhint 'contracts/**/*.sol'",
     "coverage": "hardhat coverage",
     "compile": "hardhat compile",
     "docgen": "hardhat docgen",
