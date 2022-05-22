@@ -3,13 +3,12 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction } from 'hardhat-deploy/types'
 import { ethers, network } from 'hardhat'
 import { utils } from 'ethers'
-import { LifDeposit, LifDeposit__factory, LifTest } from '../typechain'
-import { zeroPad } from 'ethers/lib/utils'
+import { LifDeposit__factory, LifTest } from '../typechain'
 import { TransactionRequest } from '@ethersproject/providers'
 import { getProxyAdminFactory } from '@openzeppelin/hardhat-upgrades/dist/utils'
 
 const LIF_DEPOSIT_PROXY = '0x7Fa6Ad0866Caa4aBdE8d60B905B3Ae60A3E0f014'
-const PROXY_ADMIN = '0x9068a8323b7d6cbc2831c54569981e3ba7b5862e'
+const PROXY_ADMIN = '0xf66eE7f8406ac8922010e8c23ED62D0be05AEC5e'
 const COMMUNITY_MULTI_SIG = '0x876969b13dcf884C13D4b4f003B69229E6b7966A'
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -37,15 +36,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Carol: ${carol}`)
   console.log(`Gov: ${gov}`)
 
-  // if forked testnet, assume multisig isn't set as owner...
-  if (!network.config.live && network.name === 'hardhat') {
-    await network.provider.send('hardhat_setStorageAt', [
-      PROXY_ADMIN, // proxyadmin
-      '0x0',
-      utils.hexlify(zeroPad(COMMUNITY_MULTI_SIG, 32), { hexPad: 'left' })
-    ])
-  }
-
   // --- deploy contracts
 
   // lifdeposit implementation only
@@ -56,7 +46,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   })
 
   // liftest if testnet
-  if (!network.config.live) {
+  if (!network.config.live && !network.tags.forked) {
     const lifTestDeploy = await deploy('LifTest', {
       from: deployer,
       log: true,
@@ -83,9 +73,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }
   }
 
+  if (!network.config.live && network.tags.forked) {
+    const NUM_TOKENS = utils.parseEther('10000')
+    ;[alice, bob, carol, gov, lifOwner, nonOwner, orgIdOwner, lifDepositOwner, organizationOwner, entityDirector].forEach(async (user) => {
+      const storageSlot = utils.keccak256(utils.defaultAbiCoder.encode(['address', 'uint256'], [user, 51]))
+      await network.provider.send('hardhat_setStorageAt', [
+        '0x9C38688E5ACB9eD6049c8502650db5Ac8Ef96465', // proxyadmin
+        storageSlot,
+        utils.defaultAbiCoder.encode(['uint256'], [NUM_TOKENS])
+      ])
+    })
+  }
+
   const proxyAdminFactory = await getProxyAdminFactory(hre)
 
   const tx: TransactionRequest = {
+    from: COMMUNITY_MULTI_SIG,
     to: PROXY_ADMIN,
     value: 0,
     data: proxyAdminFactory.interface.encodeFunctionData('upgradeAndCall', [
@@ -100,7 +103,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log('Submit the following transaction via the community multi-sig:')
   console.log(tx)
 
-  // if forked testnet, assume multisig isn't set as owner...
   if (!network.config.live && network.name === 'hardhat') {
     await network.provider.send('hardhat_setBalance', [
       COMMUNITY_MULTI_SIG,
@@ -114,8 +116,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const signedTx = await signer.populateTransaction(tx)
     const upgradeTx = await signer.sendTransaction(signedTx)
     const receipt = await upgradeTx.wait()
-
-    console.log(receipt)
   }
 }
 
