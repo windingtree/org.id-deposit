@@ -1,24 +1,54 @@
-pragma solidity >=0.5.16;
+// SPDX-License-Identifier: GPL-3.0-only
+pragma solidity ^0.8.13;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20FlashMint.sol";
 
-contract LifTest is ERC20Mintable {
+contract LifTest is
+    ERC20,
+    ERC20Burnable,
+    Pausable,
+    AccessControl,
+    ERC20Permit,
+    ERC20FlashMint
+{
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    string public name;
-    string public symbol;
-    uint public decimals;
+    constructor(
+        string memory name,
+        string memory symbol,
+        uint256,
+        uint256 supply
+    ) ERC20(name, symbol) ERC20Permit(name) {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(PAUSER_ROLE, msg.sender);
+        _grantRole(MINTER_ROLE, msg.sender);
 
-    /**
-     * @dev Token constructor
-     * @param _name Token name
-     * @param _symbol Token symbol
-     * @param _decimals Token decimals
-     * @param _supply Total supply
-     */
-    constructor(string memory _name, string memory _symbol, uint _decimals, uint256 _supply) public {
-        name = _name;
-        symbol = _symbol;
-        decimals = _decimals;
-        _mint(msg.sender, _supply);
+        _mint(msg.sender, supply);
+    }
+
+    function pause() public onlyRole(PAUSER_ROLE) {
+        _pause();
+    }
+
+    function unpause() public onlyRole(PAUSER_ROLE) {
+        _unpause();
+    }
+
+    function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
+        _mint(to, amount);
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override whenNotPaused {
+        super._beforeTokenTransfer(from, to, amount);
     }
 }

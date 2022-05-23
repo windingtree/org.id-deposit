@@ -1,39 +1,25 @@
-# Logs
-logs
+# misc
+.DS_Store
+*.swp
+*.db
 *.log
-npm-debug.log*
-.node-xmlhttprequest-sync-[0-9]*
 
-# Compiled
-build
-index.js
+# python for tools
+__pycache__
+.pytest_cache
+.venv/
 
-# Dependency directories
-node_modules
+# node
+node_modules/
 
-# Coverage artifacts
-coverage
-coverage.json
-.flattened
-allFiredEvents
-coverageEnv
-scTopics
-.coverage_artifacts
+# hardhat / typechain artifacts
+artifacts/
+cache/
+typechain/
+reports/
+coverage*
+inheritance-graph.dot
 
-# ETH keys
-keys*.json
-
-# OpenZeppelin SDK
-.zos.session
-zos.dev-*
-.openzeppelin/*
-!.openzeppelin/project.json
-
-# Project deployments
-!.openzeppelin/ropsten-*
-!.openzeppelin/main-*
-
-# Etc
-temp
-cache
-artifacts
+# dotenv
+.env*
+!.env.template
