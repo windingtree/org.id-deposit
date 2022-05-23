@@ -3,6 +3,7 @@
 *.swp
 *.db
 *.log
+temp
 
 # python for tools
 __pycache__
